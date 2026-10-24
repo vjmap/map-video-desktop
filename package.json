@@ -1,0 +1,40 @@
+{
+  "name": "vjmap-map-video-desktop",
+  "productName": "唯杰地图动画",
+  "version": "1.0.0",
+  "private": true,
+  "description": "唯杰地图动画桌面端：打开平台上的编辑器，出片、截帧用这台电脑的显卡",
+  "author": "vjmap",
+  "main": "dist/main.js",
+  "scripts": {
+    "postinstall": "node scripts/patch-hyperframes.mjs node_modules",
+    "dist:win": "node scripts/stage-resources.mjs && electron-builder --win",
+    "dist:mac": "node scripts/stage-resources.mjs && electron-builder --mac"
+  },
+  "dependencies": {
+    "@hyperframes/core": "0.8.41",
+    "@hyperframes/engine": "0.8.42",
+    "@hyperframes/lint": "0.8.41",
+    "@hyperframes/parsers": "0.8.41",
+    "@hyperframes/producer": "0.8.41",
+    "@hyperframes/studio-server": "0.8.41",
+    "puppeteer-core": "25.11.0"
+  },
+  "devDependencies": {
+    "electron": "44.9.2",
+    "electron-builder": "26.15.3"
+  },
+  "//dependencies": "出片核的版本和服务器上的地图动画插件一致（同一份执行器、同样的画面），由主仓库导出时带过来，别在这里单独升级",
+  "overrides": {
+    "@hyperframes/engine": {
+      "@hyperframes/core": "0.8.42",
+      "@hyperframes/lint": "0.8.42",
+      "@hyperframes/parsers": "0.8.42",
+      "@hyperframes/studio-server": "0.8.42",
+      "puppeteer": "25.11.0"
+    },
+    "@hyperframes/producer": {
+      "puppeteer": "25.11.0"
+    }
+  }
+}

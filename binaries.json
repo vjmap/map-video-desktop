@@ -1,0 +1,19 @@
+{
+  "//": "随包的出片程序，版本和校验和都钉死（docs/map-video/116 §7.3）。scripts/stage-resources.mjs 按它取，scripts/build-ffmpeg-macos.sh 按它编。ffmpeg 一律用 LGPL 构建（免费商用，没有 libx264；H.264 用本机的硬件 / 系统编码器）",
+  "chromeHeadlessShell": "155.0.8059.39",
+  "ffmpeg": {
+    "version": "9.0.2",
+    "license": "LGPL（Windows 版带 --enable-version3：LGPL-3.0-or-later；macOS 版自编：LGPL-2.1-or-later）",
+    "win-x64": {
+      "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-10-22-13-06/ffmpeg-n9.0.2-33-g4cf298e66a-win64-lgpl-shared-9.0.zip",
+      "sha256": "14d2da681ed1999a6232de61f99d869a46df437dd910d69c1fb5c9c83172242e",
+      "source": "https://github.com/FFmpeg/FFmpeg/tree/4cf298e66a（release/9.0 分支 n9.0.2-33）",
+      "builder": "https://github.com/BtbN/FFmpeg-Builds（autobuild-2026-10-22-13-06 的 win64-lgpl-shared-9.0 构建：ffmpeg / ffprobe 共用一套 DLL，比静态版小一百多 MB）"
+    },
+    "mac-sources": {
+      "ffmpeg": { "url": "https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz", "sha256": "8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e" },
+      "libvpx": { "url": "https://github.com/webmproject/libvpx/archive/refs/tags/v1.17.0.tar.gz", "sha256": "1020f184046187baa2985dbde38e0691f49c44088bca7a1842b0236c6081dc0a", "license": "BSD-3-Clause" },
+      "opus": { "url": "https://downloads.xiph.org/releases/opus/opus-1.6.1.tar.gz", "sha256": "6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1", "license": "BSD-3-Clause" }
+    }
+  }
+}

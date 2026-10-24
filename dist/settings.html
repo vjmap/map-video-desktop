@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'self'; img-src 'self' data:">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>设置</title>
+<style>
+  :root { --bg: #0b1020; --panel: #121a30; --line: #24304f; --text: #e8ecf6; --muted: #8e9ab8; --accent: #3d7bff; --warn: #ffb648; --bad: #ff6b6b; --ok: #3ccf8e; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font: 14px/1.6 system-ui, "PingFang SC", "Microsoft YaHei", sans-serif; }
+  main { padding: 20px 22px 28px; max-width: 640px; }
+  h1 { font-size: 18px; margin: 0 0 14px; }
+  section { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; margin-bottom: 14px; }
+  h2 { font-size: 13px; color: var(--muted); font-weight: 600; margin: 0 0 10px; letter-spacing: .02em; }
+  .row { display: flex; align-items: center; gap: 10px; margin: 8px 0; }
+  .row > label:first-child { flex: 0 0 132px; color: var(--muted); }
+  .grow { flex: 1; min-width: 0; }
+  input[type=text], input[type=number] { width: 100%; background: #0d1426; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; font: inherit; }
+  button { background: #1d2948; color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 5px 12px; font: inherit; cursor: pointer; white-space: nowrap; }
+  button.primary { background: var(--accent); border-color: var(--accent); }
+  button:hover { filter: brightness(1.15); }
+  .path { font-family: ui-monospace, Consolas, monospace; font-size: 12px; overflow-wrap: anywhere; }
+  .muted { color: var(--muted); font-size: 12px; }
+  .check { display: flex; gap: 8px; align-items: flex-start; margin: 10px 0; cursor: pointer; }
+  .check input { margin-top: 4px; }
+  .pill { display: inline-block; padding: 1px 8px; border-radius: 99px; font-size: 12px; border: 1px solid var(--line); }
+  .ok { color: var(--ok); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+  #msg { min-height: 20px; font-size: 12px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>唯杰地图动画 · 设置</h1>
+
+  <section>
+    <h2>站点与账号</h2>
+    <div class="row"><label for="site">站点地址</label><input class="grow" type="text" id="site" spellcheck="false"><button id="saveSite">保存并重开</button></div>
+    <div class="muted">缺省连唯杰官网；私有部署填你们平台的地址（含部署子路径，如 https://example.com/agent）。</div>
+    <div class="row"><label>状态</label><span class="grow" id="siteState"></span></div>
+    <div class="row"><label>账号</label><span class="grow" id="account"></span><button id="logout">退出登录</button></div>
+  </section>
+
+  <section>
+    <h2>本机出片</h2>
+    <div class="row"><label>这台电脑</label><span class="grow" id="device"></span></div>
+    <div class="row"><label>显卡</label><span class="grow" id="gpu"></span><button id="regpu">重新检测</button></div>
+    <div class="row"><label>执行器</label><span class="grow" id="runner"></span></div>
+    <label class="check"><input type="checkbox" id="paused"><span>暂停接活<br><span class="muted">网页和 AI 都不会再把出片派到这台电脑，直到恢复。</span></span></label>
+    <label class="check"><input type="checkbox" id="allowAi"><span>允许平台 AI 和外部 AI 用这台电脑出片、截帧</span></label>
+    <label class="check"><input type="checkbox" id="aiKeepLocal"><span>AI 出的片也只存本机<br><span class="muted">打开后，会话里的 AI 发起的出片不传回平台：会话里看不到成片，需要时在导出记录里点「上传到平台」。</span></span></label>
+  </section>
+
+  <section>
+    <h2>成片与缓存</h2>
+    <div class="row"><label>成片存放目录</label><span class="grow path" id="outputDir"></span><button id="pickOut">更改…</button><button id="openOut">打开</button></div>
+    <div class="row"><label for="cacheGb">缓存上限（GB）</label><input type="number" id="cacheGb" min="1" max="200" style="width:90px"><button id="saveCache">保存</button><button id="clearCache">清空缓存</button></div>
+    <div class="muted">缓存里是出片要的素材、地图运行时和成片的分段，下过一次就不再下；清空后下次出片会重新下载。</div>
+  </section>
+
+  <section>
+    <h2>窗口</h2>
+    <label class="check"><input type="checkbox" id="keepInTray"><span>关掉窗口后留在托盘接活<br><span class="muted">缺省关：没有任务在跑就直接退出；正在出片时关窗口总是先留在托盘，出完再退。</span></span></label>
+    <div class="row"><label>版本</label><span class="grow" id="version"></span><button id="logs">查看日志</button></div>
+  </section>
+  <div id="msg"></div>
+</main>
+<script src="settings.js"></script>
+</body>
+</html>

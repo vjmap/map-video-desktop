@@ -1,0 +1,1 @@
+(()=>{var t=new URLSearchParams(location.search),e=t.get("url")??"";document.getElementById("reason").textContent=t.get("reason")??"";document.getElementById("url").textContent=e;document.getElementById("retry").addEventListener("click",()=>{/^https?:\/\//.test(e)?location.href=e:history.back()});})();

@@ -1,0 +1,117 @@
+# 打 Windows / macOS（Apple 芯片、Intel）安装包。推 v 开头的标签（如 v1.0.0）出正式版草稿；也能在 Actions 页面手动跑（只出产物，不建版本）。
+# 没配证书就出未签名包：Windows 不签，macOS 用 ad-hoc 签名（用户第一次打开按「安装说明.md」放行）。
+# 以后有证书了，在仓库 Settings → Secrets 里加上，不用改这个文件：
+#   Windows：WIN_CSC_LINK（证书 .pfx 的 base64）、WIN_CSC_KEY_PASSWORD
+#   macOS：MAC_CSC_LINK、MAC_CSC_KEY_PASSWORD（Developer ID Application 证书）、APPLE_ID、APPLE_APP_SPECIFIC_PASSWORD、APPLE_TEAM_ID（公证）
+name: 打包桌面端
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, target: win-x64, builder: "--win --x64" }
+          - { os: macos-15, target: mac-arm64, builder: "--mac --arm64" }
+          - { os: macos-15-intel, target: mac-x64, builder: "--mac --x64" }
+    runs-on: ${{ matrix.os }}
+    env:
+      PUPPETEER_SKIP_DOWNLOAD: "true"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: 装依赖
+        run: npm ci
+
+      - name: 编 LGPL 版 ffmpeg 要的工具（macOS）
+        if: runner.os == 'macOS'
+        run: brew install nasm pkgconf || true
+
+      - name: 缓存 macOS 版 ffmpeg
+        if: runner.os == 'macOS'
+        uses: actions/cache@v4
+        with:
+          path: staging/ffmpeg-${{ matrix.target }}
+          key: ffmpeg-${{ matrix.target }}-${{ hashFiles('binaries.json', 'scripts/build-ffmpeg-macos.sh') }}
+
+      - name: 编 macOS 版 ffmpeg（LGPL，第一次十几分钟，之后走缓存）
+        if: runner.os == 'macOS'
+        run: test -x staging/ffmpeg-${{ matrix.target }}/bin/ffmpeg || bash scripts/build-ffmpeg-macos.sh ${{ matrix.target }}
+
+      - name: 准备随包资源（无头浏览器、ffmpeg、许可）
+        run: node scripts/stage-resources.mjs --target ${{ matrix.target }}
+
+      - name: 打包
+        shell: bash
+        env:
+          WIN_CSC_LINK: ${{ secrets.WIN_CSC_LINK }}
+          WIN_CSC_KEY_PASSWORD: ${{ secrets.WIN_CSC_KEY_PASSWORD }}
+          MAC_CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          MAC_CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          extra=()
+          if [ "$RUNNER_OS" = "Windows" ]; then
+            if [ -n "$WIN_CSC_LINK" ]; then export CSC_LINK="$WIN_CSC_LINK" CSC_KEY_PASSWORD="$WIN_CSC_KEY_PASSWORD"; else export CSC_IDENTITY_AUTO_DISCOVERY=false; fi
+          else
+            if [ -n "$MAC_CSC_LINK" ]; then
+              export CSC_LINK="$MAC_CSC_LINK" CSC_KEY_PASSWORD="$MAC_CSC_KEY_PASSWORD"
+              [ -n "$APPLE_ID" ] && extra+=("-c.mac.notarize=true")
+            else
+              export CSC_IDENTITY_AUTO_DISCOVERY=false
+              # 没有 Apple 开发者证书：ad-hoc 签名（Apple 芯片上不签名根本跑不起来），关 hardened runtime 免得系统拒绝载入 Electron 框架
+              extra+=("-c.mac.identity=-" "-c.mac.hardenedRuntime=false")
+            fi
+          fi
+          npx electron-builder ${{ matrix.builder }} --publish never "${extra[@]}"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          if-no-files-found: error
+          path: |
+            release/*.exe
+            release/*.dmg
+            release/*.zip
+            release/latest*.yml
+            release/*.blockmap
+
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+      - name: 建版本草稿（在 Releases 页面检查后再发布）
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # 两个 mac 架构都叫 latest-mac.yml：前面加上平台架构（放到官网更新目录时去掉前缀，见 README）
+          mkdir up
+          for d in out/*/; do
+            t="$(basename "$d")"
+            for f in "$d"*; do
+              n="$(basename "$f")"
+              case "$n" in latest*.yml) cp "$f" "up/$t-$n" ;; *) cp "$f" up/ ;; esac
+            done
+          done
+          ls -la up
+          gh release create "$GITHUB_REF_NAME" up/* --draft --title "唯杰地图动画 $GITHUB_REF_NAME" --notes-file 安装说明.md

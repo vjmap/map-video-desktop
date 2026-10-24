@@ -1,0 +1,79 @@
+# 唯杰地图动画桌面端打包（docs/map-video/116 §7、§9）。先 node build.mjs --prod && node scripts/stage-resources.mjs，再 electron-builder --win / --mac。
+# 发布包在 GitHub Actions 上打（release-repo/.github/workflows/build.yml，scripts/export-release-repo.mjs 导出）：Windows x64、macOS arm64 / x64 各一台机器。
+# 代码签名：Windows 设 CSC_LINK / CSC_KEY_PASSWORD；macOS 设 CSC_LINK + APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD / APPLE_TEAM_ID（公证）。
+# 没证书：Windows 出未签名包；macOS 加 -c.mac.identity=- -c.mac.hardenedRuntime=false 出 ad-hoc 签名包（Apple 芯片不签名跑不了）。用户首次打开怎么放行见 release-repo/安装说明.md。
+appId: com.vjmap.mapvideo.desktop
+artifactName: VJMapVideo-${version}-${os}-${arch}.${ext}
+productName: 唯杰地图动画
+copyright: Copyright © vjmap
+directories:
+  output: release
+  buildResources: build
+files:
+  - dist/**
+  - "!dist/**/*.map"
+  - build/icon.png
+  - build/tray.png
+  - build/tray@2x.png
+  - package.json
+asar: true
+# Electron 自带的界面语言包只留中文和英文（全带约 49 MB）
+electronLanguages: [zh-CN, en-US]
+# 出片核（HyperFrames、puppeteer-core）要拉起无头浏览器、读自己包里的运行时文件：整个 node_modules 放在 asar 外面
+asarUnpack:
+  - node_modules/**
+# 随包的出片程序（无头浏览器、ffmpeg、ffprobe）按平台架构分开准备（scripts/stage-resources.mjs），字体 / vendor / 运行时是执行器的种子缓存
+extraResources:
+  - from: staging/${os}-${arch}/bin
+    to: bin
+  - from: staging/seed
+    to: seed
+  # 第三方许可（FFmpeg LGPL 原文与源码说明、chrome-headless-shell、汇总），帮助菜单「开源软件许可」打开这里
+  - from: staging/licenses
+    to: licenses
+# 构建期开关：关掉「当成通用 Node 用」「NODE_OPTIONS」「--inspect」，只从 asar 载入应用，Cookie 加密存
+electronFuses:
+  runAsNode: false
+  enableCookieEncryption: true
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
+  grantFileProtocolExtraPrivileges: false
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icon.ico
+  executableName: VJMapVideo
+nsis:
+  oneClick: false
+  perMachine: false            # 按用户安装：不要管理员权限（公司电脑也能装）
+  allowElevation: true
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  shortcutName: 唯杰地图动画
+  artifactName: VJMapVideo-Setup-${version}-${arch}.${ext}
+  deleteAppDataOnUninstall: false
+
+mac:
+  # 分架构出包（通用包会让无头浏览器和 ffmpeg 体积翻倍）：架构由命令行 --arm64 / --x64 给，不写在这里——写了会盖过命令行，
+  # 一台机器上就会两个架构都打（另一个架构的 staging 没有）。不给就是本机架构
+  target: [dmg, zip]           # zip 给自动更新用
+  category: public.app-category.video
+  icon: build/icon.png
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+  extendInfo:
+    NSMicrophoneUsageDescription: 录制旁白时要用麦克风
+  minimumSystemVersion: "12.0"
+dmg:
+  artifactName: VJMapVideo-${version}-mac-${arch}.${ext}
+
+publish:
+  provider: generic
+  url: https://vjmap.com/agent/desktop/updates/${os}-${arch}
+  channel: latest
