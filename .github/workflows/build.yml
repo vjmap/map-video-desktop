@@ -38,7 +38,7 @@ jobs:
 
       - name: 编 LGPL 版 ffmpeg 要的工具（macOS）
         if: runner.os == 'macOS'
-        run: brew install nasm pkgconf || true
+        run: brew install nasm pkgconf autoconf automake libtool meson ninja || true
 
       - name: 缓存 macOS 版 ffmpeg
         if: runner.os == 'macOS'

@@ -97,7 +97,7 @@ if (!ffDir && tos === "mac") {
   if (!fs.existsSync(path.join(ffDir, "ffmpeg"))) die(`没有 ${ffDir}/ffmpeg：先跑 scripts/build-ffmpeg-macos.sh ${target}，或设 FFMPEG_DIR`);
   ffLicense = path.join(staging, `ffmpeg-${target}`, "LICENSE");
   const s = pins.ffmpeg["mac-sources"];
-  ffSource = `macOS 版用 scripts/build-ffmpeg-macos.sh 从源码编译（不带 --enable-gpl / --enable-nonfree）：\n  FFmpeg ${s.ffmpeg.url}（sha256 ${s.ffmpeg.sha256}）\n  libvpx ${s.libvpx.url}（${s.libvpx.license}）\n  opus ${s.opus.url}（${s.opus.license}）`;
+  ffSource = `macOS 版用 scripts/build-ffmpeg-macos.sh 从源码编译（不带 --enable-gpl / --enable-nonfree）：\n  FFmpeg ${s.ffmpeg.url}（sha256 ${s.ffmpeg.sha256}）\n  libvpx ${s.libvpx.url}（${s.libvpx.license}）\n  opus ${s.opus.url}（${s.opus.license}）\n  zimg ${s.zimg.url}（${s.zimg.license}）\n  dav1d ${s.dav1d.url}（${s.dav1d.license}）`;
 }
 if (!ffDir) die(`给 ${target} 准备 ffmpeg：设 FFMPEG_DIR=<放着 ${exe("ffmpeg")} 和 ${exe("ffprobe")} 的目录>`);
 for (const n of ["ffmpeg", "ffprobe"]) {
@@ -142,7 +142,7 @@ fs.writeFileSync(path.join(licenses, "THIRD_PARTY_NOTICES.txt"), [
   "唯杰地图动画桌面端使用的第三方软件",
   "",
   `· FFmpeg ${pins.ffmpeg.version}（ffmpeg、ffprobe，独立程序）—— ${pins.ffmpeg.license}。许可原文见 FFmpeg-LICENSE.txt，源码在哪见 FFmpeg-SOURCE.txt。`,
-  "  其中带的 libvpx、libopus 等组件为 BSD 许可。",
+  "  其中带的 libvpx、libopus、dav1d 等组件为 BSD 许可，zimg 为 WTFPL。",
   `· chrome-headless-shell ${version}（Chrome for Testing，独立程序）—— BSD 许可及 Chromium 所含组件的许可，见 chrome-headless-shell-LICENSE.txt。`,
   "· Electron —— MIT 许可；Chromium 组件的许可见安装目录里的 LICENSES.chromium.html。",
   "· HyperFrames（@hyperframes/*）、puppeteer-core 等 npm 包 —— 各自 package.json 里写明的开源许可（MIT / Apache-2.0）。",

@@ -11,9 +11,32 @@
       "builder": "https://github.com/BtbN/FFmpeg-Builds（autobuild-2026-10-22-13-06 的 win64-lgpl-shared-9.0 构建：ffmpeg / ffprobe 共用一套 DLL，比静态版小一百多 MB）"
     },
     "mac-sources": {
-      "ffmpeg": { "url": "https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz", "sha256": "8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e" },
-      "libvpx": { "url": "https://github.com/webmproject/libvpx/archive/refs/tags/v1.17.0.tar.gz", "sha256": "1020f184046187baa2985dbde38e0691f49c44088bca7a1842b0236c6081dc0a", "license": "BSD-3-Clause" },
-      "opus": { "url": "https://downloads.xiph.org/releases/opus/opus-1.6.1.tar.gz", "sha256": "6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1", "license": "BSD-3-Clause" }
+      "ffmpeg": {
+        "url": "https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz",
+        "sha256": "8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e"
+      },
+      "libvpx": {
+        "url": "https://github.com/webmproject/libvpx/archive/refs/tags/v1.17.0.tar.gz",
+        "sha256": "1020f184046187baa2985dbde38e0691f49c44088bca7a1842b0236c6081dc0a",
+        "license": "BSD-3-Clause"
+      },
+      "opus": {
+        "url": "https://downloads.xiph.org/releases/opus/opus-1.6.1.tar.gz",
+        "sha256": "6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1",
+        "license": "BSD-3-Clause"
+      },
+      "zimg": {
+        "url": "https://github.com/sekrit-twc/zimg/archive/refs/tags/release-3.0.6.tar.gz",
+        "sha256": "be89390f13a5c9b2388ce0f44a5e89364a20c1c57ce46d382b1fcc3967057577",
+        "license": "WTFPL",
+        "why": "zscale：HDR 素材（如 iPhone HDR 视频）转 SDR 要它（HyperFrames videoFrameExtractor）"
+      },
+      "dav1d": {
+        "url": "https://downloads.videolan.org/pub/videolan/dav1d/1.5.4/dav1d-1.5.4.tar.xz",
+        "sha256": "686616b7c69eb88d44459391ab25cac13b6647a3b288835c5784e71c1514a5c5",
+        "license": "BSD-2-Clause",
+        "why": "AV1 素材解码（FFmpeg 自带的 AV1 解码只走硬件）"
+      }
     }
   }
 }

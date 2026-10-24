@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# 在 macOS 上从源码编 LGPL 版 ffmpeg / ffprobe（docs/map-video/116 §7.3）：静态链接 libvpx、libopus（BSD），H.264 用系统的 VideoToolbox，
+# 在 macOS 上从源码编 LGPL 版 ffmpeg / ffprobe（docs/map-video/116 §7.3）：静态链接 libvpx、libopus、dav1d（BSD）、zimg（WTFPL），H.264 用系统的 VideoToolbox，
 # 不带 --enable-gpl / --enable-nonfree（免费商用）。源码版本和 sha256 在 binaries.json 的 ffmpeg.mac-sources。
 # 输出 staging/ffmpeg-<target>/{bin/ffmpeg,bin/ffprobe,LICENSE}，scripts/stage-resources.mjs 从这里取。
 #   bash scripts/build-ffmpeg-macos.sh mac-arm64    # 在 Apple 芯片的 Mac 上（GitHub Actions：macos-15）
 #   bash scripts/build-ffmpeg-macos.sh mac-x64      # 在 Intel Mac 上（GitHub Actions：macos-15-intel）
-# 要 nasm（x64 的 libvpx 汇编）和 pkg-config：brew install nasm pkgconf
+# zimg 给 zscale（HDR 素材转 SDR，出片核抽帧时用），dav1d 给 AV1 素材解码；和服务器、Windows 版的能力对齐。
+# 要 nasm（x64 的 libvpx / dav1d 汇编）、pkg-config、autotools（zimg）、meson + ninja（dav1d）：brew install nasm pkgconf autoconf automake libtool meson ninja
 set -euo pipefail
 
 target="${1:?用法：build-ffmpeg-macos.sh mac-arm64|mac-x64}"
@@ -38,6 +39,8 @@ fetch() {
 echo "== 取源码"
 fetch libvpx
 fetch opus
+fetch zimg
+fetch dav1d
 fetch ffmpeg
 
 echo "== libvpx（$vpx_target）"
@@ -47,11 +50,19 @@ echo "== libvpx（$vpx_target）"
 echo "== opus"
 (cd "$work/src/opus" && ./configure --prefix="$deps" --disable-shared --enable-static --with-pic --disable-doc --disable-extra-programs && make -j"$jobs" && make install)
 
+echo "== zimg"
+# 静态库是 C++ 的：pkg-config 里要带上 macOS 的 C++ 运行时（缺省写的 -lstdc++ 新版 macOS 已经没有）
+(cd "$work/src/zimg" && ./autogen.sh && ./configure --prefix="$deps" --disable-shared --enable-static --with-pic STL_LIBS="-lc++" && make -j"$jobs" && make install)
+
+echo "== dav1d"
+(cd "$work/src/dav1d" && meson setup build --prefix="$deps" --libdir=lib --default-library=static --buildtype=release \
+  -Denable_tools=false -Denable_tests=false -Denable_examples=false -Denable_docs=false && ninja -C build install)
+
 echo "== ffmpeg"
 # --disable-autodetect：不让 configure 顺手链上 Homebrew 里的库（别人的机器上没有，还可能是 GPL）；要的系统组件逐个打开
 (cd "$work/src/ffmpeg" && ./configure --prefix="$work/ffmpeg-install" \
   --disable-autodetect --enable-pthreads --enable-videotoolbox --enable-audiotoolbox --enable-zlib --enable-bzlib --enable-iconv \
-  --enable-libvpx --enable-libopus \
+  --enable-libvpx --enable-libopus --enable-libzimg --enable-libdav1d \
   --disable-shared --enable-static --disable-debug --disable-doc --disable-ffplay \
   --pkg-config-flags=--static --extra-cflags="-I$deps/include -mmacosx-version-min=12.0" --extra-ldflags="-L$deps/lib -mmacosx-version-min=12.0" \
   && make -j"$jobs" && make install)
@@ -69,6 +80,8 @@ for b in ffmpeg ffprobe; do
 done
 "$out/bin/ffmpeg" -hide_banner -encoders | grep -q h264_videotoolbox || { echo "没编进 VideoToolbox"; exit 1; }
 "$out/bin/ffmpeg" -hide_banner -encoders | grep -q libvpx-vp9 || { echo "没编进 libvpx"; exit 1; }
+"$out/bin/ffmpeg" -hide_banner -filters | grep -qw zscale || { echo "没编进 zimg（zscale）"; exit 1; }
+"$out/bin/ffmpeg" -hide_banner -decoders | grep -qw libdav1d || { echo "没编进 dav1d"; exit 1; }
 "$out/bin/ffmpeg" -hide_banner -loglevel error -f lavfi -i color=size=320x240:rate=1:duration=1 -frames:v 1 -an -c:v h264_videotoolbox -b:v 1M -allow_sw 1 -f null - || { echo "VideoToolbox 编码试不通"; exit 1; }
 rm -rf "$work"
 echo "== 好了：$out/bin（$(du -sh "$out/bin" | cut -f1)）"
