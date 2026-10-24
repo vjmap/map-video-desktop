@@ -67,6 +67,7 @@ echo "== ffmpeg"
   --enable-libvpx --enable-libopus --enable-libzimg --enable-libdav1d \
   --disable-shared --enable-static --disable-debug --disable-doc --disable-ffplay \
   --pkg-config-flags=--static --extra-cflags="-I$deps/include -mmacosx-version-min=12.0" --extra-ldflags="-L$deps/lib -mmacosx-version-min=12.0" \
+  --extra-libs="-liconv" \
   && make -j"$jobs" && make install)
 
 cp "$work/ffmpeg-install/bin/ffmpeg" "$work/ffmpeg-install/bin/ffprobe" "$out/bin/"
