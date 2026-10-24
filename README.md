@@ -15,7 +15,7 @@
 版本里的 `*-latest*.yml` 是给以后的自动更新准备的（桌面端还没接自动更新）：到时把每个平台的安装包、`.blockmap` 和那份 yml
 放到 `https://vjmap.com/agent/desktop/updates/<平台架构>/`，yml 去掉前缀（`win-x64-latest.yml` → `win-x64/latest.yml`）。macOS 自动更新要正式签名才行。
 
-只想试打包、不建版本：Actions 页面选「打包桌面端」→ Run workflow，产物在那次运行的 Artifacts 里。
+只想试打包、不建版本：推到 main 就会打（只改 README / 安装说明不打），或在 Actions 页面选「打包桌面端」→ Run workflow；产物在那次运行的 Artifacts 里。出错时日志末尾会写成那次运行的注解（Annotations）。
 
 ## 签名（可选，以后再买）
 
