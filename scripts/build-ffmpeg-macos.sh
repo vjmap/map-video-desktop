@@ -43,7 +43,7 @@ fetch zimg
 fetch dav1d
 fetch ffmpeg
 
-echo "== libvpx（$vpx_target）"
+echo "== libvpx（${vpx_target}）"
 (cd "$work/src/libvpx" && ./configure --prefix="$deps" --target="$vpx_target" --disable-shared --enable-static --enable-pic \
   --disable-examples --disable-tools --disable-docs --disable-unit-tests --enable-vp8 --enable-vp9 && make -j"$jobs" && make install)
 
