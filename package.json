@@ -1,7 +1,7 @@
 {
   "name": "vjmap-map-video-desktop",
   "productName": "唯杰地图动画",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "description": "唯杰地图动画桌面端：打开平台上的编辑器，出片、截帧用这台电脑的显卡",
   "author": "vjmap",
