@@ -107,7 +107,8 @@ jobs:
         if: failure()
         run: |
           [ -f "$RUNNER_TEMP/build.log" ] || exit 0
-          tail -n 80 "$RUNNER_TEMP/build.log" | tr -d '\r' | cut -c1-300 | awk -v t="${{ matrix.target }}" '
+          # 按字节处理（LC_ALL=C）：macOS 的 cut 碰到多字节字符会报错、把后面截掉
+          tail -n 80 "$RUNNER_TEMP/build.log" | LC_ALL=C tr -d '\r' | LC_ALL=C cut -b1-300 | LC_ALL=C awk -v t="${{ matrix.target }}" '
             { gsub(/%/, "%25"); buf = buf $0 "%0A"; n++ }
             n == 20 { print "::error title=" t " 日志末尾 " (++k) "::" buf; buf = ""; n = 0 }
             END { if (buf != "") print "::error title=" t " 日志末尾 " (++k) "::" buf }'

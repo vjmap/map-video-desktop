@@ -51,6 +51,8 @@ echo "== opus"
 (cd "$work/src/opus" && ./configure --prefix="$deps" --disable-shared --enable-static --with-pic --disable-doc --disable-extra-programs && make -j"$jobs" && make install)
 
 echo "== zimg"
+# Homebrew 的 libtool 命令叫 glibtoolize（避开 Apple 自带的 libtool），autoreconf 按 LIBTOOLIZE 找
+command -v libtoolize >/dev/null || export LIBTOOLIZE=glibtoolize
 # 静态库是 C++ 的：pkg-config 里要带上 macOS 的 C++ 运行时（缺省写的 -lstdc++ 新版 macOS 已经没有）
 (cd "$work/src/zimg" && ./autogen.sh && ./configure --prefix="$deps" --disable-shared --enable-static --with-pic STL_LIBS="-lc++" && make -j"$jobs" && make install)
 
